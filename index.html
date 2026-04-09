@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard AHI — Gardu Induk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+/* ============================================================
+   DESIGN SYSTEM — Industrial / Precision Engineering aesthetic
+   Clean dark interface with amber accent. Feels like a control room.
+   ============================================================ */
+:root {
+  --bg:        #0d0e11;
+  --bg2:       #13151a;
+  --bg3:       #1a1d24;
+  --border:    rgba(255,255,255,0.07);
+  --border2:   rgba(255,255,255,0.13);
+  --text:      #e8eaf0;
+  --text2:     #8a8f9e;
+  --text3:     #555a68;
+  --amber:     #f5a623;
+  --amber2:    #ffc96b;
+  --amber-dim: rgba(245,166,35,0.12);
+  --blue:      #4a9eff;
+  --coral:     #ff6b6b;
+  --teal:      #3ecf8e;
+  --red:       #ff4d4d;
+  --green:     #3ecf8e;
+  --c0:        #4a9eff;
+  --c1:        #ff6b6b;
+  --c2:        #3ecf8e;
+  --font:      'DM Sans', sans-serif;
+  --mono:      'DM Mono', monospace;
+  --radius:    6px;
+  --radius-lg: 10px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── HEADER ── */
+.site-header {
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  position: sticky;
+  top: 0;
+  background: rgba(13,14,17,0.92);
+  backdrop-filter: blur(12px);
+  z-index: 100;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-mark {
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid var(--amber);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.logo-mark::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background: var(--amber);
+  border-radius: 2px;
+}
+
+.logo-text {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.logo-sub {
+  font-size: 11px;
+  color: var(--text3);
+  font-weight: 300;
+  letter-spacing: 0.04em;
+}
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 12px;
+  color: var(--text3);
+  font-family: var(--mono);
+}
+
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  display: inline-block;
+  margin-right: 5px;
+  box-shadow: 0 0 6px var(--green);
+}
+
+/* ── MAIN LAYOUT ── */
+.main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px 32px 80px;
+}
+
+/* ── SECTION TITLE ── */
+.section-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--amber);
+  font-family: var(--mono);
+  margin-bottom: 6px;
+}
+
+.section-title {
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.section-sub {
+  font-size: 13px;
+  color: var(--text2);
+  font-weight: 300;
+}
+
+/* ── KPI CARDS ── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 28px 0;
+}
+
+.kpi-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--amber);
+  opacity: 0.3;
+}
+
+.kpi-card.highlight::before { opacity: 1; }
+.kpi-card:hover { border-color: var(--border2); }
+
+.kpi-label {
+  font-size: 11px;
+  color: var(--text3);
+  font-family: var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.kpi-value {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi-value.warn  { color: var(--amber); }
+.kpi-value.danger { color: var(--coral); }
+
+.kpi-sub {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 6px;
+  font-weight: 300;
+}
+
+/* ── DIVIDER ── */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 36px 0;
+}
+
+/* ── PANEL ── */
+.panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.panel-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.panel-sub {
+  font-size: 12px;
+  color: var(--text3);
+  font-weight: 300;
+}
+
+/* ── TWO-COL GRID ── */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+/* ── SELECT / CONTROLS ── */
+.control-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ctrl-label {
+  font-size: 11px;
+  color: var(--text3);
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+select {
+  font-family: var(--font);
+  font-size: 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23555a68' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
+
+select:focus, select:hover { border-color: var(--amber); }
+
+/* ── GI PILLS ── */
+.pills-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.pill {
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-family: var(--mono);
+  cursor: pointer;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--text3);
+  transition: all 0.15s;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.pill:hover { border-color: var(--text3); color: var(--text); }
+
+.pill.active   { border-color: var(--c0); color: var(--c0); background: rgba(74,158,255,0.1); }
+.pill.active.i1{ border-color: var(--c1); color: var(--c1); background: rgba(255,107,107,0.1); }
+.pill.active.i2{ border-color: var(--c2); color: var(--c2); background: rgba(62,207,142,0.1); }
+
+.pills-hint {
+  font-size: 11px;
+  color: var(--text3);
+  font-family: var(--mono);
+  margin-top: 8px;
+}
+
+/* ── LEGEND ── */
+.legend-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 14px;
+  font-size: 11px;
+  color: var(--text2);
+  font-family: var(--mono);
+}
+
+.legend-row span { display: flex; align-items: center; gap: 6px; }
+.lsq { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── RADAR CHART EMPTY STATE ── */
+.empty-state {
+  height: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text3);
+  gap: 12px;
+}
+
+.empty-icon {
+  width: 48px; height: 48px;
+  border: 1px dashed var(--border2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-icon svg { opacity: 0.4; }
+
+/* ── STAT CARDS ── */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.stat-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+}
+
+.stat-label {
+  font-size: 10px;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text3);
+  margin-bottom: 4px;
+}
+
+.stat-val {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.stat-val.warn   { color: var(--amber); }
+.stat-val.danger { color: var(--coral); }
+
+/* ── DISTRIBUTION BAR CHART ── */
+.dist-chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 240px;
+}
+
+/* ── TABLE ── */
+.table-wrap {
+  overflow-x: auto;
+  max-height: 400px;
+  overflow-y: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  table-layout: fixed;
+}
+
+th {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  background: var(--bg2);
+  position: sticky;
+  top: 0;
+  white-space: nowrap;
+  font-weight: 400;
+}
+
+td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--bg3); }
+
+/* ── BADGE ── */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-family: var(--mono);
+  font-weight: 500;
+  text-align: center;
+  min-width: 28px;
+}
+
+.b1 { background: rgba(255,77,77,0.18);   color: #ff4d4d; border: 1px solid rgba(255,77,77,0.3); }
+.b2 { background: rgba(255,107,107,0.15); color: #ff6b6b; }
+.b3 { background: rgba(245,166,35,0.15);  color: #f5a623; }
+.b4 { background: rgba(62,207,142,0.15);  color: #3ecf8e; }
+.b5 { background: rgba(74,158,255,0.15);  color: #4a9eff; }
+.bn { background: transparent; color: var(--text3); }
+
+/* ── TABLE FILTER ── */
+.table-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.tbl-count {
+  font-size: 11px;
+  color: var(--text3);
+  font-family: var(--mono);
+  margin-top: 8px;
+}
+
+/* ── FOOTER ── */
+.site-footer {
+  border-top: 1px solid var(--border);
+  padding: 20px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text3);
+  font-family: var(--mono);
+}
+
+/* ── HOW TO UPDATE BOX ── */
+.update-box {
+  background: var(--amber-dim);
+  border: 1px solid rgba(245,166,35,0.25);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  margin-top: 32px;
+}
+
+.update-box h3 {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--amber2);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.update-box p {
+  font-size: 12px;
+  color: var(--text2);
+  margin-bottom: 8px;
+  font-weight: 300;
+  line-height: 1.7;
+}
+
+.update-box code {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: rgba(0,0,0,0.3);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--amber2);
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.kpi-card { animation: fadeUp 0.4s ease both; }
+.kpi-card:nth-child(1) { animation-delay: 0.05s; }
+.kpi-card:nth-child(2) { animation-delay: 0.10s; }
+.kpi-card:nth-child(3) { animation-delay: 0.15s; }
+.kpi-card:nth-child(4) { animation-delay: 0.20s; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .main { padding: 20px 16px 60px; }
+  .site-header { padding: 0 16px; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .two-col  { grid-template-columns: 1fr; }
+  .stat-row { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 540px) {
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .stat-row { grid-template-columns: 1fr 1fr; }
+  .header-meta { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     ▲  DATA SECTION — UPDATE DATA DI SINI
+     Untuk update data:
+     1. Buka file ini di text editor
+     2. Cari bagian "DATA SECTION" di bawah ini
+     3. Edit array DATA sesuai data terbaru
+     4. Simpan dan push ke GitHub
+     ══════════════════════════════════════════════════════ -->
+<script>
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  UPDATE DATA DI SINI — Tambah/edit/hapus baris sesuai data  ║
+// ╚══════════════════════════════════════════════════════════════╝
+const DATA = [
+  // FORMAT: { NO, UPT, GI, KES_TRAFO, KES_MV, KES_SWITCHYARD, KES_GIS, KES_SKTT, KES_SUTT, KES_PROTEKSI, KES_CATU, KES_COMMON }
+  // Nilai level: 1=Baik, 2=Cukup, 3=Kurang, 4=Buruk, 5=Kritis, null=Tidak ada data
+  {"NO":1,"UPT":"UPT BALI","GI":"GI 150KV AMLAPURA","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":1},
+  {"NO":2,"UPT":"UPT BALI","GI":"GI 150KV ANTOSARI","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":3,"UPT":"UPT BALI","GI":"GI 150KV BATURITI","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":4,"UPT":"UPT BALI","GI":"GI 150KV GIANYAR","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":1},
+  {"NO":5,"UPT":"UPT BALI","GI":"GI 150KV GILIMANUK","KES_TRAFO":5,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":5,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":6,"UPT":"UPT BALI","GI":"GI 150KV KAPAL","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":1},
+  {"NO":7,"UPT":"UPT BALI","GI":"GIS 150KV TANAH LOT","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":3,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":8,"UPT":"UPT BALI","GI":"GI 150KV NEGARA","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":9,"UPT":"UPT BALI","GI":"GI 150KV NUSADUA","KES_TRAFO":5,"KES_MV":1,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":5,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":10,"UPT":"UPT BALI","GI":"GI 150KV PADANG SAMBIAN","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":11,"UPT":"UPT BALI","GI":"GI 150KV PAYANGAN","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":12,"UPT":"UPT BALI","GI":"GI 150KV PEMARON","KES_TRAFO":4,"KES_MV":3,"KES_SWITCHYARD":3,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":2},
+  {"NO":13,"UPT":"UPT BALI","GI":"GIS 150KV CELUKAN BAWANG","KES_TRAFO":3,"KES_MV":5,"KES_SWITCHYARD":3,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":14,"UPT":"UPT BALI","GI":"GI 150KV PEMECUTAN KELOD","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":1},
+  {"NO":15,"UPT":"UPT BALI","GI":"GI 150KV SANUR","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":16,"UPT":"UPT BALI","GI":"GIS 150KV BANDARA NGURAHRAI","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":5,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":17,"UPT":"UPT BALI","GI":"GIS 150KV PECATU","KES_TRAFO":2,"KES_MV":1,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":2},
+  {"NO":18,"UPT":"UPT BALI","GI":"GIS 150KV PESANGGARAN","KES_TRAFO":5,"KES_MV":1,"KES_SWITCHYARD":3,"KES_GIS":1,"KES_SKTT":5,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":19,"UPT":"UPT BALI","GI":"GI 150KV KUBU","KES_TRAFO":2,"KES_MV":1,"KES_SWITCHYARD":3,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":2},
+  {"NO":20,"UPT":"UPT GRESIK","GI":"GI 150KV ALTAPRIMA","KES_TRAFO":5,"KES_MV":3,"KES_SWITCHYARD":3,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":21,"UPT":"UPT GRESIK","GI":"GI 150KV BANGKALAN","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":22,"UPT":"UPT GRESIK","GI":"GI 150KV GILITIMUR","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":23,"UPT":"UPT GRESIK","GI":"GI 150KV MANYAR","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":5,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":24,"UPT":"UPT GRESIK","GI":"GI 150KV CERME","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":25,"UPT":"UPT GRESIK","GI":"GI 70KV MASPIONSBM","KES_TRAFO":1,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":26,"UPT":"UPT GRESIK","GI":"GI 150KV PETROKIMIA","KES_TRAFO":4,"KES_MV":4,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":27,"UPT":"UPT GRESIK","GI":"GI 150KV PLTU GRESIK","KES_TRAFO":1,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":5,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":28,"UPT":"UPT GRESIK","GI":"GI 150KV SAMBIKEREP","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":1},
+  {"NO":29,"UPT":"UPT GRESIK","GI":"GI 150KV PAMEKASAN","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":2},
+  {"NO":30,"UPT":"UPT GRESIK","GI":"GI 150KV SAMPANG","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":31,"UPT":"UPT GRESIK","GI":"GI 150KV SUMENEP","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":32,"UPT":"UPT GRESIK","GI":"GI 150KV GULUK-GULUK","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":2},
+  {"NO":33,"UPT":"UPT GRESIK","GI":"GI 150KV SEGOROMADU","KES_TRAFO":4,"KES_MV":4,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":2},
+  {"NO":34,"UPT":"UPT GRESIK","GI":"GI 70KV BARATA","KES_TRAFO":1,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":35,"UPT":"UPT GRESIK","GI":"GI 70KV SEMENGRESIK","KES_TRAFO":1,"KES_MV":1,"KES_SWITCHYARD":null,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":2},
+  {"NO":36,"UPT":"UPT GRESIK","GI":"GIS 150KV TANDES","KES_TRAFO":4,"KES_MV":4,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":37,"UPT":"UPT GRESIK","GI":"GISTET 500KV GRESIK","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":2,"KES_GIS":5,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":38,"UPT":"UPT GRESIK","GI":"GI 150KV BUNGAH","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":39,"UPT":"UPT GRESIK","GI":"GI 150KV WILMAR","KES_TRAFO":1,"KES_MV":1,"KES_SWITCHYARD":2,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":1},
+  {"NO":40,"UPT":"UPT MADIUN","GI":"GI 150KV BABAT","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":41,"UPT":"UPT MADIUN","GI":"GI 150KV BOJONEGORO","KES_TRAFO":5,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":42,"UPT":"UPT MADIUN","GI":"GI 150KV JATIGEDONG","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":43,"UPT":"UPT MADIUN","GI":"GI 150KV JAYAKERTAS","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":44,"UPT":"UPT MADIUN","GI":"GI 150KV SURYAZIGZAG","KES_TRAFO":1,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":45,"UPT":"UPT MADIUN","GI":"GI 150KV KERTOSONO","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":46,"UPT":"UPT MADIUN","GI":"GI 150KV JOMBANG","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":47,"UPT":"UPT MADIUN","GI":"GI 150KV LAMONGAN","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":48,"UPT":"UPT MADIUN","GI":"GI 150KV MLIWANG","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":49,"UPT":"UPT MADIUN","GI":"GI 150KV NEWPACITAN","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":2},
+  {"NO":50,"UPT":"UPT MADIUN","GI":"GI 150KV NEWPONOROGO","KES_TRAFO":5,"KES_MV":1,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":51,"UPT":"UPT MADIUN","GI":"GI 30KV NGEBEL","KES_TRAFO":1,"KES_MV":4,"KES_SWITCHYARD":3,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":52,"UPT":"UPT MADIUN","GI":"GI 70KV DOLOPO","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":53,"UPT":"UPT MADIUN","GI":"GI 150KV NGAWI","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":54,"UPT":"UPT MADIUN","GI":"GI 70KV CARUBAN","KES_TRAFO":4,"KES_MV":4,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":55,"UPT":"UPT MADIUN","GI":"GI 150KV PACIRAN","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":2,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":56,"UPT":"UPT MADIUN","GI":"GI 150KV SEMEN TUBAN","KES_TRAFO":5,"KES_MV":1,"KES_SWITCHYARD":3,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":57,"UPT":"UPT MADIUN","GI":"GI 150KV TUBAN","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":58,"UPT":"UPT MADIUN","GI":"GI 150KV KEREK","KES_TRAFO":5,"KES_MV":1,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":1},
+  {"NO":59,"UPT":"UPT MADIUN","GI":"GI 150KV TANJUNG AWAR-AWAR","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":60,"UPT":"UPT MADIUN","GI":"GI 30KV GIRINGAN","KES_TRAFO":1,"KES_MV":1,"KES_SWITCHYARD":3,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":61,"UPT":"UPT MADIUN","GI":"GI 150KV MANISREJO","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":62,"UPT":"UPT MADIUN","GI":"GI 30KV GOLANG","KES_TRAFO":1,"KES_MV":1,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":63,"UPT":"UPT MADIUN","GI":"GI 70KV BLITAR BARU","KES_TRAFO":5,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":64,"UPT":"UPT MADIUN","GI":"GI 150KV BANARAN","KES_TRAFO":5,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":65,"UPT":"UPT MADIUN","GI":"GI 70KV GUDANGGARAM","KES_TRAFO":5,"KES_MV":1,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":66,"UPT":"UPT MADIUN","GI":"GI 70KV PARE","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":67,"UPT":"UPT MADIUN","GI":"GI 70KV MAGETAN","KES_TRAFO":3,"KES_MV":3,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":68,"UPT":"UPT MADIUN","GI":"GI 70KV MRANGGEN","KES_TRAFO":4,"KES_MV":4,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":69,"UPT":"UPT MADIUN","GI":"GI 70KV NGANJUK","KES_TRAFO":3,"KES_MV":4,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":1},
+  {"NO":70,"UPT":"UPT MADIUN","GI":"GI 150KV NEWNGANJUK","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":1},
+  {"NO":71,"UPT":"UPT MADIUN","GI":"GI 70KV PLTA TULUNGAGUNG","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":1},
+  {"NO":72,"UPT":"UPT MADIUN","GI":"GI 70KV TULUNGAGUNG","KES_TRAFO":5,"KES_MV":4,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":73,"UPT":"UPT MADIUN","GI":"GI 150KV NEWTULUNGAGUNG","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":74,"UPT":"UPT MADIUN","GI":"GI 70KV TRENGGALEK","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":3,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":75,"UPT":"UPT MADIUN","GI":"GIS 150KV PLTU PACITAN","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":3,"KES_GIS":4,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":76,"UPT":"UPT MADIUN","GI":"GITET 500KV KEDIRI","KES_TRAFO":5,"KES_MV":1,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":77,"UPT":"UPT MADIUN","GI":"GITET 500KV NGIMBANG","KES_TRAFO":5,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":78,"UPT":"UPT MALANG","GI":"GI 150KV BALONGBENDO","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":79,"UPT":"UPT MALANG","GI":"GI 150KV BAMBE","KES_TRAFO":5,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":80,"UPT":"UPT MALANG","GI":"GI 150KV KASIHJATIM","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":81,"UPT":"UPT MALANG","GI":"GI 150KV KEBONAGUNG","KES_TRAFO":5,"KES_MV":1,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":82,"UPT":"UPT MALANG","GI":"GI 150KV LAWANG","KES_TRAFO":5,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":83,"UPT":"UPT MALANG","GI":"GI 150KV MOJOAGUNG","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":84,"UPT":"UPT MALANG","GI":"GI 150KV NGORO","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":85,"UPT":"UPT MALANG","GI":"GI 150KV PAKIS","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":2},
+  {"NO":86,"UPT":"UPT MALANG","GI":"GI 150KV SEKARPUTIH","KES_TRAFO":5,"KES_MV":4,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":87,"UPT":"UPT MALANG","GI":"GI 70KV AJINOMOTO","KES_TRAFO":1,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":88,"UPT":"UPT MALANG","GI":"GI 70KV TJIWIKIMIA","KES_TRAFO":1,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":89,"UPT":"UPT MALANG","GI":"GI 70KV KARANGKATES","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":90,"UPT":"UPT MALANG","GI":"GI 150KV SUTAMI","KES_TRAFO":1,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":91,"UPT":"UPT MALANG","GI":"GI 150KV WLINGI","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":2,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":92,"UPT":"UPT MALANG","GI":"GI 150KV NEWWLINGI","KES_TRAFO":4,"KES_MV":3,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":93,"UPT":"UPT MALANG","GI":"GI 70KV TARIK","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":94,"UPT":"UPT MALANG","GI":"GI 70KV BANGUN","KES_TRAFO":1,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":95,"UPT":"UPT MALANG","GI":"GIS 150KV DRIYOREJO","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":4,"KES_GIS":2,"KES_SKTT":1,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":96,"UPT":"UPT MALANG","GI":"GI 70KV MIWON","KES_TRAFO":1,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":97,"UPT":"UPT MALANG","GI":"GI 70KV PLOSO","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":98,"UPT":"UPT MALANG","GI":"GI 70KV BLIMBING","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":99,"UPT":"UPT MALANG","GI":"GI 70KV POLEHAN","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":100,"UPT":"UPT MALANG","GI":"GI 150KV SENGKALING","KES_TRAFO":5,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":101,"UPT":"UPT MALANG","GI":"GI 70KV SELOREJO","KES_TRAFO":3,"KES_MV":5,"KES_SWITCHYARD":3,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":102,"UPT":"UPT MALANG","GI":"GI 70KV SENGGURUH","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":2},
+  {"NO":103,"UPT":"UPT MALANG","GI":"GI 70KV MENDALAN","KES_TRAFO":1,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":1},
+  {"NO":104,"UPT":"UPT MALANG","GI":"GI 70KV SIMAN","KES_TRAFO":3,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":1},
+  {"NO":105,"UPT":"UPT MALANG","GI":"GI 70KV GAMPINGAN","KES_TRAFO":1,"KES_MV":1,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":106,"UPT":"UPT MALANG","GI":"GI 70KV TUREN","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":107,"UPT":"UPT MALANG","GI":"GIS 150KV KARANGPILANG","KES_TRAFO":3,"KES_MV":2,"KES_SWITCHYARD":5,"KES_GIS":3,"KES_SKTT":5,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":108,"UPT":"UPT MALANG","GI":"GITET 500KV KRIAN","KES_TRAFO":5,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":109,"UPT":"UPT PROBOLINGGO","GI":"GI 150KV BUMICOKRO","KES_TRAFO":4,"KES_MV":5,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":5,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":110,"UPT":"UPT PROBOLINGGO","GI":"GI 150KV GENDING","KES_TRAFO":1,"KES_MV":1,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":111,"UPT":"UPT PROBOLINGGO","GI":"GI 150KV KRAKSAAN","KES_TRAFO":3,"KES_MV":2,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":112,"UPT":"UPT PROBOLINGGO","GI":"GI 150KV GENTENG","KES_TRAFO":3,"KES_MV":2,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":113,"UPT":"UPT PROBOLINGGO","GI":"GI 150KV GONDANGWETAN","KES_TRAFO":5,"KES_MV":2,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":114,"UPT":"UPT PROBOLINGGO","GI":"GI 150KV REJOSO","KES_TRAFO":1,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":115,"UPT":"UPT PROBOLINGGO","GI":"GI 150KV JEMBER","KES_TRAFO":4,"KES_MV":3,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":116,"UPT":"UPT PROBOLINGGO","GI":"GI 150KV LUMAJANG","KES_TRAFO":5,"KES_MV":2,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":117,"UPT":"UPT PROBOLINGGO","GI":"GI 150KV TANGGUL","KES_TRAFO":3,"KES_MV":2,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":118,"UPT":"UPT PROBOLINGGO","GI":"GI 150KV PUGER","KES_TRAFO":3,"KES_MV":2,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":1},
+  {"NO":119,"UPT":"UPT PROBOLINGGO","GI":"GI 150KV PIER","KES_TRAFO":5,"KES_MV":5,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":120,"UPT":"UPT PROBOLINGGO","GI":"GI 150KV PROBOLINGGO","KES_TRAFO":4,"KES_MV":5,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":121,"UPT":"UPT PROBOLINGGO","GI":"GI 150KV PURWOSARI","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":122,"UPT":"UPT PROBOLINGGO","GI":"GI 150KV BONDOWOSO","KES_TRAFO":3,"KES_MV":2,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":123,"UPT":"UPT PROBOLINGGO","GI":"GI 150KV SITUBONDO","KES_TRAFO":4,"KES_MV":4,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":124,"UPT":"UPT PROBOLINGGO","GI":"GI 150KV BULUKANDANG","KES_TRAFO":3,"KES_MV":2,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":125,"UPT":"UPT PROBOLINGGO","GI":"GI 150KV NEWPANDAAN","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":126,"UPT":"UPT PROBOLINGGO","GI":"GIS 150KV BANGIL","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":127,"UPT":"UPT PROBOLINGGO","GI":"GISTET 500KV PAITON","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":5,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":128,"UPT":"UPT PROBOLINGGO","GI":"GITET 500KV GRATI","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":129,"UPT":"UPT PROBOLINGGO","GI":"GI 150KV KIS","KES_TRAFO":5,"KES_MV":2,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":1},
+  {"NO":130,"UPT":"UPT PROBOLINGGO","GI":"GI 150KV NEWPORONG","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":0},
+  {"NO":131,"UPT":"UPT PROBOLINGGO","GI":"GI 150KV BANYUWANGI","KES_TRAFO":4,"KES_MV":1,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":132,"UPT":"UPT SURABAYA","GI":"GI 150KV BABADAN","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":133,"UPT":"UPT SURABAYA","GI":"GI 70KV MASPION","KES_TRAFO":5,"KES_MV":1,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":134,"UPT":"UPT SURABAYA","GI":"GI 150KV ISPATINDO","KES_TRAFO":5,"KES_MV":1,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":135,"UPT":"UPT SURABAYA","GI":"GI 150KV BUDURAN","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":136,"UPT":"UPT SURABAYA","GI":"GI 150KV KALISARI","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":2,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":137,"UPT":"UPT SURABAYA","GI":"GI 150KV SUKOLILO","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":1,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":138,"UPT":"UPT SURABAYA","GI":"GI 150KV KENJERAN","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":5,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":2},
+  {"NO":139,"UPT":"UPT SURABAYA","GI":"GIS 150KV KEDINDING","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":2,"KES_GIS":1,"KES_SKTT":5,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":140,"UPT":"UPT SURABAYA","GI":"GI 150KV RUNGKUT","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":3,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":1},
+  {"NO":141,"UPT":"UPT SURABAYA","GI":"GI 150KV SIDOARJO","KES_TRAFO":3,"KES_MV":2,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":2,"KES_PROTEKSI":1,"KES_CATU":5,"KES_COMMON":2},
+  {"NO":142,"UPT":"UPT SURABAYA","GI":"GI 150KV SURABAYA SELATAN","KES_TRAFO":3,"KES_MV":2,"KES_SWITCHYARD":5,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":143,"UPT":"UPT SURABAYA","GI":"GIS 150KV DARMOGRANDE","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":1,"KES_GIS":3,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":144,"UPT":"UPT SURABAYA","GI":"GI 150KV PERAK","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":3,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+  {"NO":145,"UPT":"UPT SURABAYA","GI":"GIS 150KV KREMBANGAN","KES_TRAFO":3,"KES_MV":5,"KES_SWITCHYARD":5,"KES_GIS":4,"KES_SKTT":1,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":146,"UPT":"UPT SURABAYA","GI":"GIS 150KV NGAGEL","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":2,"KES_GIS":5,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":2},
+  {"NO":147,"UPT":"UPT SURABAYA","GI":"GIS 150KV SIMPANG","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":2,"KES_GIS":1,"KES_SKTT":5,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":2},
+  {"NO":148,"UPT":"UPT SURABAYA","GI":"GIS 150KV WONOKROMO","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":2,"KES_GIS":1,"KES_SKTT":5,"KES_SUTT":null,"KES_PROTEKSI":5,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":149,"UPT":"UPT SURABAYA","GI":"GIS 150KV SAWAHAN","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":5,"KES_GIS":5,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":1},
+  {"NO":150,"UPT":"UPT SURABAYA","GI":"GIS 150KV KUPANG","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":2,"KES_GIS":1,"KES_SKTT":5,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":151,"UPT":"UPT SURABAYA","GI":"GIS 150KV UJUNG","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":3,"KES_GIS":5,"KES_SKTT":5,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":152,"UPT":"UPT SURABAYA","GI":"GIS 150KV UNDAAN","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":2,"KES_GIS":1,"KES_SKTT":5,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":2},
+  {"NO":153,"UPT":"UPT SURABAYA","GI":"GIS 150KV GEMBONG","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":2,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":1},
+  {"NO":154,"UPT":"UPT SURABAYA","GI":"GIS 150KV WARU","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":3,"KES_GIS":3,"KES_SKTT":1,"KES_SUTT":3,"KES_PROTEKSI":5,"KES_CATU":1,"KES_COMMON":4},
+  {"NO":155,"UPT":"UPT SURABAYA","GI":"GIS 150KV GUNUNGSARI","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":1,"KES_SUTT":1,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":3},
+  {"NO":156,"UPT":"UPT SURABAYA","GI":"GI 150KV SEDATI","KES_TRAFO":4,"KES_MV":2,"KES_SWITCHYARD":4,"KES_GIS":1,"KES_SKTT":5,"KES_SUTT":null,"KES_PROTEKSI":1,"KES_CATU":1,"KES_COMMON":5},
+];
+
+// ── Metadata (update sesuai periode data) ──────────────────────
+const META = {
+  title:   "Dashboard AHI Gardu Induk",
+  org:     "PLN UIT JBM",
+  periode: "Tahun 2024",
+  updated: "April 2025",
+};
+</script>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!--  MARKUP                                               -->
+<!-- ══════════════════════════════════════════════════════ -->
+
+<header class="site-header">
+  <div class="logo">
+    <div class="logo-mark"></div>
+    <div>
+      <div class="logo-text">AHI Monitor</div>
+      <div class="logo-sub" id="metaOrg"></div>
+    </div>
+  </div>
+  <div class="header-meta">
+    <span><span class="status-dot"></span>Live</span>
+    <span id="metaPeriode"></span>
+    <span id="metaUpdated"></span>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- ── HERO ── -->
+  <div style="margin-bottom:28px">
+    <div class="section-label">Asset Health Index</div>
+    <h1 class="section-title" id="metaTitle"></h1>
+    <p class="section-sub">Monitoring level anomali 9 kategori aset · Skala 1 (Baik) — 5 (Kritis)</p>
+  </div>
+
+  <!-- ── KPI ── -->
+  <div class="kpi-grid">
+    <div class="kpi-card highlight">
+      <div class="kpi-label">Total Gardu Induk</div>
+      <div class="kpi-value" id="kpiTotal">—</div>
+      <div class="kpi-sub" id="kpiUptCount">—</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Avg AHI Switchyard</div>
+      <div class="kpi-value warn" id="kpiSW">—</div>
+      <div class="kpi-sub">Rata-rata semua GI</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Avg AHI Trafo</div>
+      <div class="kpi-value warn" id="kpiTR">—</div>
+      <div class="kpi-sub">Rata-rata semua GI</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">GI Kritis (Lv 1)</div>
+      <div class="kpi-value danger" id="kpiKritis">—</div>
+      <div class="kpi-sub">Min. 1 kategori level 1</div>
+    </div>
+  </div>
+
+  <!-- ── CHARTS ROW ── -->
+  <div class="two-col">
+
+    <!-- Distribusi -->
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Distribusi level anomali</div>
+          <div class="panel-sub">Per kategori aset</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;font-size:11px;color:#8a8f9e;font-family:'DM Mono',monospace">
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#ff4d4d;display:inline-block"></span>Lv 1</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#ff6b6b;display:inline-block"></span>Lv 2</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#f5a623;display:inline-block"></span>Lv 3</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#3ecf8e;display:inline-block"></span>Lv 4</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#4a9eff;display:inline-block"></span>Lv 5</span>
+      </div>
+      <div class="dist-chart-wrap">
+        <canvas id="distChart" role="img" aria-label="Stacked bar distribusi level anomali per kategori">Distribusi level anomali 9 kategori</canvas>
+      </div>
+    </div>
+
+    <!-- Avg per UPT -->
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Rata-rata AHI per UPT</div>
+          <div class="panel-sub">Pilih kategori</div>
+        </div>
+        <select id="uptCatSel" onchange="updateUptChart()">
+          <option value="KES_TRAFO">Trafo</option>
+          <option value="KES_MV">MV Apparatus</option>
+          <option value="KES_SWITCHYARD">Switchyard</option>
+          <option value="KES_GIS">GIS</option>
+          <option value="KES_SKTT">SKTT/SKLT</option>
+          <option value="KES_SUTT">SUTT/SUTET</option>
+          <option value="KES_PROTEKSI">Proteksi</option>
+          <option value="KES_CATU">Catu Daya</option>
+          <option value="KES_COMMON">Common Facility</option>
+        </select>
+      </div>
+      <div style="position:relative;width:100%;height:220px">
+        <canvas id="uptChart" role="img" aria-label="Bar chart rata-rata AHI per UPT">Rata-rata AHI per UPT</canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ── SPIDER CHART ── -->
+  <div style="margin-bottom:16px">
+    <div class="section-label">Spider Chart</div>
+    <div style="font-size:16px;font-weight:500;color:var(--text)">Profil anomali per Gardu Induk</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:16px">
+    <div class="panel-header" style="flex-direction:column;align-items:flex-start;gap:12px">
+      <div class="control-row">
+        <span class="ctrl-label">UPT</span>
+        <select id="spiderUpt" onchange="onSpiderUptChange()">
+          <option value="UPT BALI">UPT Bali</option>
+          <option value="UPT GRESIK">UPT Gresik</option>
+          <option value="UPT MADIUN">UPT Madiun</option>
+          <option value="UPT MALANG">UPT Malang</option>
+          <option value="UPT PROBOLINGGO">UPT Probolinggo</option>
+          <option value="UPT SURABAYA">UPT Surabaya</option>
+        </select>
+        <span class="pills-hint" style="margin:0">Pilih maks. 3 GI →</span>
+      </div>
+      <div class="pills-wrap" id="spiderPills"></div>
+    </div>
+  </div>
+
+  <div class="two-col" style="align-items:start">
+    <div class="panel">
+      <div class="panel-title" id="spiderTitle" style="margin-bottom:3px">Pilih GI di atas</div>
+      <div class="panel-sub" id="spiderSub" style="margin-bottom:12px">Klik nama GI untuk tampilkan spider chart</div>
+      <div class="legend-row" id="spiderLegend"></div>
+      <div style="position:relative;width:100%;height:340px">
+        <canvas id="spiderChart" role="img" aria-label="Spider chart AHI per GI">Spider chart AHI</canvas>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title" style="margin-bottom:14px">Statistik</div>
+      <div class="stat-row" id="spiderStats" style="grid-template-columns:1fr 1fr">
+        <div class="stat-card" style="grid-column:1/-1">
+          <div class="stat-label">Petunjuk</div>
+          <div style="font-size:12px;color:var(--text3);font-weight:300;line-height:1.7;margin-top:4px">Pilih UPT, lalu klik nama GI untuk menampilkan profil anomali di spider chart. Maksimal 3 GI untuk perbandingan.</div>
+        </div>
+      </div>
+      <!-- Level legend -->
+      <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
+        <div class="panel-sub" style="margin-bottom:10px">Keterangan level</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;align-items:center;gap:10px;font-size:12px">
+            <span class="badge b5" style="min-width:32px;text-align:center">1</span>
+            <span style="color:var(--text2)">Kritis — tindakan darurat</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:12px">
+            <span class="badge b4" style="min-width:32px;text-align:center">2</span>
+            <span style="color:var(--text2)">Buruk — segera ditangani</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:12px">
+            <span class="badge b3" style="min-width:32px;text-align:center">3</span>
+            <span style="color:var(--text2)">Kurang — perlu perhatian</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:12px">
+            <span class="badge b2" style="min-width:32px;text-align:center">4</span>
+            <span style="color:var(--text2)">Cukup — anomali minor</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:12px">
+            <span class="badge b1" style="min-width:32px;text-align:center">5</span>
+            <span style="color:var(--text2)">Baik — tidak ada anomali</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ── TABLE ── -->
+  <div style="margin-bottom:16px">
+    <div class="section-label">Data Tabel</div>
+    <div style="font-size:16px;font-weight:500;color:var(--text)">Detail seluruh Gardu Induk</div>
+  </div>
+
+  <div class="panel">
+    <div class="table-controls">
+      <span class="ctrl-label">UPT</span>
+      <select id="tblUpt" onchange="renderTable()">
+        <option value="">Semua UPT</option>
+        <option>UPT BALI</option>
+        <option>UPT GRESIK</option>
+        <option>UPT MADIUN</option>
+        <option>UPT MALANG</option>
+        <option>UPT PROBOLINGGO</option>
+        <option>UPT SURABAYA</option>
+      </select>
+      <span class="ctrl-label">Level Trafo</span>
+      <select id="tblLvl" onchange="renderTable()">
+        <option value="0">Semua</option>
+        <option value="3">≥ 3</option>
+        <option value="4">≥ 4</option>
+        <option value="5">= 5 (Kritis)</option>
+      </select>
+      <span class="ctrl-label">Urutkan</span>
+      <select id="tblSort" onchange="renderTable()">
+        <option value="NO">No. urut</option>
+        <option value="KES_TRAFO">Trafo ↓</option>
+        <option value="KES_SWITCHYARD">Switchyard ↓</option>
+        <option value="KES_COMMON">Common ↓</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:36px">No</th>
+            <th style="width:100px">UPT</th>
+            <th style="width:200px">Gardu Induk</th>
+            <th style="width:60px;text-align:center">Trafo</th>
+            <th style="width:55px;text-align:center">MV App</th>
+            <th style="width:75px;text-align:center">Switchyard</th>
+            <th style="width:45px;text-align:center">GIS</th>
+            <th style="width:50px;text-align:center">SKTT</th>
+            <th style="width:50px;text-align:center">SUTT</th>
+            <th style="width:60px;text-align:center">Proteksi</th>
+            <th style="width:50px;text-align:center">Catu</th>
+            <th style="width:60px;text-align:center">Common</th>
+          </tr>
+        </thead>
+        <tbody id="tblBody"></tbody>
+      </table>
+    </div>
+    <div class="tbl-count" id="tblCount"></div>
+  </div>
+
+
+
+</main>
+
+<footer class="site-footer">
+  <span id="footerOrg"></span>
+  <span>AHI Dashboard · <span id="footerUpdated"></span></span>
+</footer>
+
+<!-- ══════════════════════════════════════════════════════
+     JAVASCRIPT — ENGINE
+     ══════════════════════════════════════════════════════ -->
+<script>
+// ── Constants ──────────────────────────────────────────────────
+const CATS   = ['KES_TRAFO','KES_MV','KES_SWITCHYARD','KES_GIS','KES_SKTT','KES_SUTT','KES_PROTEKSI','KES_CATU','KES_COMMON'];
+const CLABELS= ['Trafo','MV App','Switchyard','GIS','SKTT','SUTT','Proteksi','Catu Daya','Common'];
+const UPTS   = ['UPT BALI','UPT GRESIK','UPT MADIUN','UPT MALANG','UPT PROBOLINGGO','UPT SURABAYA'];
+const USHORT = ['Bali','Gresik','Madiun','Malang','Probolinggo','Surabaya'];
+const CLR    = ['#4a9eff','#ff6b6b','#3ecf8e'];
+const CLR_F  = ['rgba(74,158,255,0.18)','rgba(255,107,107,0.18)','rgba(62,207,142,0.18)'];
+const CLR_I  = ['i0','i1','i2'];
+const LV_CLR = ['#ff4d4d','#ff6b6b','#f5a623','#3ecf8e','#4a9eff'];
+
+let uptChartRef = null, spiderRef = null, selNos = [];
+
+// ── Helpers ────────────────────────────────────────────────────
+function shortGI(name){ return name.replace(/^(GISTET|GITET|GIS|GI)\s+(500KV|150KV|70KV|30KV)\s+/,''); }
+function avg(arr){ const v=arr.filter(x=>x>0); return v.length?(v.reduce((a,b)=>a+b,0)/v.length):0; }
+function badge(v){
+  if(v===null||v===undefined||isNaN(v)||v<=0) return '<span class="badge bn">—</span>';
+  const n=Math.round(v), c=['b1','b2','b3','b4','b5'][Math.min(4,n-1)]||'bn';
+  return `<span class="badge ${c}">${n}</span>`;
+}
+function catAvg(cat){ const v=DATA.map(r=>r[cat]).filter(x=>x&&x>0); return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(2):0; }
+function uptAvg(upt,cat){ const v=DATA.filter(r=>r.UPT===upt).map(r=>r[cat]).filter(x=>x&&x>0); return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(2):0; }
+
+// ── Init metadata ──────────────────────────────────────────────
+function initMeta(){
+  document.getElementById('metaTitle').textContent   = META.title;
+  document.getElementById('metaOrg').textContent     = META.org;
+  document.getElementById('metaPeriode').textContent = META.periode;
+  document.getElementById('metaUpdated').textContent = 'Updated: '+META.updated;
+  document.getElementById('footerOrg').textContent   = META.org + ' · ' + META.periode;
+  document.getElementById('footerUpdated').textContent = META.updated;
+}
+
+// ── KPI ────────────────────────────────────────────────────────
+function initKPI(){
+  const upts = [...new Set(DATA.map(r=>r.UPT))];
+  document.getElementById('kpiTotal').textContent    = DATA.length;
+  document.getElementById('kpiUptCount').textContent = upts.length + ' UPT wilayah';
+  document.getElementById('kpiSW').textContent       = catAvg('KES_SWITCHYARD');
+  document.getElementById('kpiTR').textContent       = catAvg('KES_TRAFO');
+  const kritis = DATA.filter(r=>CATS.some(c=>r[c]===1)).length;
+  document.getElementById('kpiKritis').textContent   = kritis;
+}
+
+// ── Distribution chart ─────────────────────────────────────────
+function initDistChart(){
+  function dist(cat){ const c={1:0,2:0,3:0,4:0,5:0}; DATA.forEach(r=>{const v=r[cat]; if(v>=1&&v<=5)c[Math.round(v)]++;}); return [1,2,3,4,5].map(k=>c[k]); }
+  const datasets=[1,2,3,4,5].map((lv,i)=>({
+    label:'Lv '+lv,
+    data:CATS.map(c=>dist(c)[i]),
+    backgroundColor:LV_CLR[i]
+  }));
+  new Chart(document.getElementById('distChart'),{
+    type:'bar',
+    data:{labels:CLABELS,datasets},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{stacked:true,ticks:{color:'#555a68',font:{size:10},autoSkip:false},grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{stacked:true,ticks:{color:'#555a68',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}}
+      }
+    }
+  });
+}
+
+// ── UPT bar chart ─────────────────────────────────────────────
+function updateUptChart(){
+  const cat=document.getElementById('uptCatSel').value;
+  const vals=UPTS.map(u=>parseFloat(uptAvg(u,cat)));
+  const bg=vals.map(v=>v<=2?'#ff4d4d':v<=3?'#f5a623':v<=4?'#3ecf8e':'#4a9eff');
+  if(uptChartRef) uptChartRef.destroy();
+  uptChartRef=new Chart(document.getElementById('uptChart'),{
+    type:'bar',
+    data:{labels:USHORT,datasets:[{data:vals,backgroundColor:bg,borderRadius:4}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#555a68',font:{size:10}},grid:{display:false}},
+        y:{min:0,max:5,ticks:{color:'#555a68',font:{size:10},stepSize:1},grid:{color:'rgba(255,255,255,0.04)'}}
+      }
+    }
+  });
+}
+
+// ── Spider chart ───────────────────────────────────────────────
+function rebuildPills(){
+  const upt=document.getElementById('spiderUpt').value;
+  const gis=DATA.filter(r=>r.UPT===upt).sort((a,b)=>a.GI.localeCompare(b.GI));
+  document.getElementById('spiderPills').innerHTML=gis.map(r=>{
+    const si=selNos.indexOf(r.NO);
+    const cls=si>=0?` active ${CLR_I[si]}`:'';
+    return `<span class="pill${cls}" onclick="toggleSpider(${r.NO})">${shortGI(r.GI)}</span>`;
+  }).join('');
+}
+
+function onSpiderUptChange(){ selNos=[]; rebuildPills(); renderSpider(); }
+
+function toggleSpider(no){
+  const idx=selNos.indexOf(no);
+  if(idx>=0) selNos.splice(idx,1);
+  else if(selNos.length<3) selNos.push(no);
+  rebuildPills();
+  renderSpider();
+}
+
+function renderSpider(){
+  if(!selNos.length){
+    if(spiderRef){spiderRef.destroy();spiderRef=null;}
+    document.getElementById('spiderTitle').textContent='Pilih GI di atas';
+    document.getElementById('spiderSub').textContent='Klik nama GI untuk tampilkan spider chart';
+    document.getElementById('spiderLegend').innerHTML='';
+    document.getElementById('spiderStats').innerHTML=`<div class="stat-card" style="grid-column:1/-1"><div class="stat-label">Petunjuk</div><div style="font-size:12px;color:var(--text3);font-weight:300;line-height:1.7;margin-top:4px">Pilih UPT, lalu klik nama GI untuk menampilkan profil anomali. Maksimal 3 GI.</div></div>`;
+    const ctx=document.getElementById('spiderChart').getContext('2d');
+    ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+    return;
+  }
+  const rows=selNos.map(no=>DATA.find(r=>r.NO===no));
+  const upt=document.getElementById('spiderUpt').value;
+  document.getElementById('spiderTitle').textContent=rows.map(r=>shortGI(r.GI)).join(' · ');
+  document.getElementById('spiderSub').textContent=upt+' · 9 kategori anomali · skala 1–5';
+  document.getElementById('spiderLegend').innerHTML=rows.map((r,i)=>`<span><span class="lsq" style="background:${CLR[i]}"></span>${shortGI(r.GI)}</span>`).join('');
+
+  const datasets=rows.map((r,i)=>({
+    label:shortGI(r.GI),
+    data:CATS.map(c=>r[c]||0),
+    borderColor:CLR[i],backgroundColor:CLR_F[i],borderWidth:1.5,
+    pointRadius:3,pointBackgroundColor:CLR[i]
+  }));
+
+  if(spiderRef) spiderRef.destroy();
+  spiderRef=new Chart(document.getElementById('spiderChart'),{
+    type:'radar',
+    data:{labels:CLABELS,datasets},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{r:{
+        min:0,max:5,
+        ticks:{stepSize:1,color:'#555a68',font:{size:9},backdropColor:'transparent'},
+        grid:{color:'rgba(255,255,255,0.06)'},
+        angleLines:{color:'rgba(255,255,255,0.06)'},
+        pointLabels:{color:'#8a8f9e',font:{size:10}}
+      }},
+      elements:{line:{tension:0.1}}
+    }
+  });
+
+  // stats
+  const statsEl=document.getElementById('spiderStats');
+  if(rows.length===1){
+    const d=datasets[0].data;
+    const maxI=d.indexOf(Math.max(...d));
+    const a=avg(d).toFixed(2);
+    const kritis=d.filter(v=>v===1).length;
+    statsEl.innerHTML=`
+      <div class="stat-card"><div class="stat-label">Rata-rata AHI</div><div class="stat-val ${a<=2?'danger':a<=3?'warn':''}">${a}</div></div>
+      <div class="stat-card"><div class="stat-label">Kategori tertinggi</div><div class="stat-val" style="font-size:14px">${CLABELS[maxI]} (${d[maxI]})</div></div>
+      <div class="stat-card"><div class="stat-label">Kategori level 1</div><div class="stat-val ${kritis>0?'danger':''}">${kritis}</div></div>`;
+  } else {
+    statsEl.innerHTML=rows.map((r,i)=>{
+      const d=datasets[i].data;
+      const a=avg(d).toFixed(2);
+      return `<div class="stat-card"><div class="stat-label" style="color:${CLR[i]}">${shortGI(r.GI).slice(0,18)}</div><div class="stat-val ${a<=2?'danger':a<=3?'warn':''}">${a}</div></div>`;
+    }).join('');
+  }
+}
+
+// ── Table ──────────────────────────────────────────────────────
+function renderTable(){
+  const fUpt=document.getElementById('tblUpt').value;
+  const fLvl=parseInt(document.getElementById('tblLvl').value)||0;
+  const fSort=document.getElementById('tblSort').value;
+  let rows=[...DATA];
+  if(fUpt) rows=rows.filter(r=>r.UPT===fUpt);
+  if(fLvl>0){
+    if(fLvl===5) rows=rows.filter(r=>r.KES_TRAFO===5);
+    else rows=rows.filter(r=>(r.KES_TRAFO||0)>=fLvl);
+  }
+  if(fSort!=='NO') rows.sort((a,b)=>(b[fSort]||0)-(a[fSort]||0));
+
+  document.getElementById('tblBody').innerHTML=rows.map(r=>`<tr>
+    <td style="color:var(--text3);font-family:var(--mono);font-size:11px">${r.NO}</td>
+    <td style="color:var(--text3);font-size:11px">${r.UPT.replace('UPT ','')}</td>
+    <td style="font-weight:500">${r.GI}</td>
+    <td style="text-align:center">${badge(r.KES_TRAFO)}</td>
+    <td style="text-align:center">${badge(r.KES_MV)}</td>
+    <td style="text-align:center">${badge(r.KES_SWITCHYARD)}</td>
+    <td style="text-align:center">${badge(r.KES_GIS)}</td>
+    <td style="text-align:center">${badge(r.KES_SKTT)}</td>
+    <td style="text-align:center">${badge(r.KES_SUTT)}</td>
+    <td style="text-align:center">${badge(r.KES_PROTEKSI)}</td>
+    <td style="text-align:center">${badge(r.KES_CATU)}</td>
+    <td style="text-align:center">${badge(r.KES_COMMON)}</td>
+  </tr>`).join('');
+  document.getElementById('tblCount').textContent=`Menampilkan ${rows.length} dari ${DATA.length} Gardu Induk`;
+}
+
+// ── Boot ──────────────────────────────────────────────────────
+window.addEventListener('load', ()=>{
+  initMeta();
+  initKPI();
+  initDistChart();
+  updateUptChart();
+  rebuildPills();
+  renderSpider();
+  renderTable();
+});
+</script>
+</body>
+</html>
